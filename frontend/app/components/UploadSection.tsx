@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../../lib/apiClient';
 import toast from 'react-hot-toast';
 import styles from '../page.module.scss';
 import { KeyedMutator } from 'swr';
@@ -28,7 +28,7 @@ export default function UploadSection({ mutate }: UploadSectionProps) {
     setIsUploading(true);
     
     toast.promise(
-      axios.post('http://localhost:3001/import', formData, {
+      apiClient.post('/import', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       }),
       {

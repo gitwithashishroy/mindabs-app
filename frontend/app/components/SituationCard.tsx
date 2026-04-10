@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../../lib/apiClient';
 import toast from 'react-hot-toast';
 import styles from '../page.module.scss';
 import { Situation } from '../types/situation';
 import { KeyedMutator } from 'swr';
+import { useSession } from 'next-auth/react';
 
 interface SituationCardProps {
   situation: Situation;
@@ -13,13 +14,14 @@ interface SituationCardProps {
 }
 
 export default function SituationCard({ situation: s, mutate }: SituationCardProps) {
+  const { data: session } = useSession();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const deleteSituation = async () => {
     setIsDeleting(true);
     toast.promise(
-      axios.delete(`http://localhost:3001/situation/${s.id}`),
+      apiClient.delete(`/situation/${s.id}`),
       {
         loading: 'Deleting Scenario...',
         success: () => {
@@ -73,15 +75,17 @@ export default function SituationCard({ situation: s, mutate }: SituationCardPro
         </div>
       )}
 
-      <div className={styles.cardFooter}>
-        <button 
-          className={styles.dangerBtn} 
-          onClick={deleteSituation}
-          disabled={isDeleting}
-        >
-          {isDeleting ? 'Processing...' : 'Delete Scenario'}
-        </button>
-      </div>
+      {session?.role === 'admin' && (
+        <div className={styles.cardFooter}>
+          <button 
+            className={styles.dangerBtn} 
+            onClick={deleteSituation}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Processing...' : 'Delete Scenario'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

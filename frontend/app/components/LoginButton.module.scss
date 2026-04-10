@@ -1,0 +1,29 @@
+.logoutButton {
+  padding: 0.5rem 1rem;
+  background-color: #ef4444; /* bg-red-500 */
+  color: #ffffff; /* text-white */
+  border-radius: 0.25rem; /* rounded */
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #dc2626; /* bg-red-600 hover equivalent */
+  }
+}
+
+.loginButton {
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6; /* bg-blue-500 */
+  color: #ffffff; /* text-white */
+  border-radius: 0.25rem; /* rounded */
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #2563eb; /* bg-blue-600 hover equivalent */
+  }
+}

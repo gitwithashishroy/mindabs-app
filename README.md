@@ -26,7 +26,50 @@ npm run dev
 ```
 The Next.js client will start on `http://localhost:3000`. Navigate to this URL to view the UI.
 
-## 🗄️ Database Choice + Schema
+## ☁️ Deployment Steps
+
+### Backend (AWS Lambda)
+1. Install the Serverless Framework globally:
+   ```bash
+   npm install -g serverless
+   ```
+2. Set up AWS credentials.
+3. Configure your production environment variables (usually on AWS or a CI/CD pipeline).
+4. Run deployment:
+   ```bash
+   cd backend
+   serverless deploy
+   ```
+
+### Frontend (Vercel)
+1. Push your code to GitHub/GitLab.
+2. Import the `frontend` project on Vercel.
+3. Add the following production environment variables:
+   - `NEXT_PUBLIC_API_BASE_URL` (Point to your deployed AWS HTTP API endpoint)
+   - `NEXTAUTH_URL` (Your production Vercel domain)
+   - `NEXTAUTH_SECRET`
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+4. Deploy.
+
+## 🔍 Final Production Checklist
+- [x] OAuth working in production
+- [x] Cookies working (cross-domain via `sameSite: none` & `secure: true`)
+- [x] Refresh token flow working
+- [x] Protected routes server-side rendering properly
+- [x] Admin role working properly 
+- [x] No secrets exposed in repositories (.gitignore verified)
+
+## � Authentication Flow
+
+This project implements a secure, stateless authentication flow using Google OAuth 2.0 and JSON Web Tokens.
+
+1. **OAuth Login:** The user signs in on the Next.js frontend using `NextAuth.js` paired with the Google Identity Provider. NextAuth intercepts the Google `id_token`.
+2. **Token Exchange:** The frontend sends the `id_token` to the Express backend (`/auth/oauth`). The backend verifies this signature directly with Google APIs to prevent spoofing.
+3. **JWT Usage:** Upon validation, the backend generates a short-lived Access Token (JWT) and a long-lived Refresh Token. The Access Token is returned in JSON, while the Refresh Token is securely hashed into the Database and distributed back to the browser via an `HttpOnly` cookie.
+4. **Refresh Token Flow:** When the short-lived API token expires (throwing a `401 Unauthorized`), the frontend Axios interceptor automatically detects it. Axios transparently sends the `HttpOnly` cookie to the `/auth/refresh` endpoint to exchange for a new Access Token. If the Refresh Token also expires or is invalid, the Axios client automatically purges the token state and redirects the user to `/login`.
+
+## �🗄️ Database Choice + Schema
 **Choice:** SQLite
 **Why?** SQLite is chosen for minimal friction. It automatically creates the DB file locally without requiring a separate database server setup, which ensures reviewers can clone and run it seamlessly.
 
