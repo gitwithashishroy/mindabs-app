@@ -1,17 +1,45 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import multer from 'multer';
 import * as xlsx from 'xlsx';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
+import cookieParser from 'cookie-parser';
+import serverless from 'serverless-http';
 import { getDb } from './db';
 import situationRoutes from './routes/situation.routes';
+import authRoutes from './routes/auth.routes';
+import userRoutes from './routes/user.routes';
+import { authenticateJWT } from './middleware/auth.middleware';
+import { requireAdmin } from './middleware/role.middleware';
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: '/tmp/uploads/' }); // Use /tmp for lambda
 
-app.use(cors());
+// SECURE CORS CONFIG: Allowed strictly from CLIENT_URL
+const allowedOrigins = process.env.CLIENT_URL ? [process.env.CLIENT_URL] : ['http://localhost:3000'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cookie'],
+}));
+
 app.use(express.json());
+app.use(cookieParser());
+
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
 
 const swaggerOptions = {
     definition: {
@@ -58,7 +86,7 @@ app.get('/health', (req: Request, res: Response) => {
  *       200:
  *         description: Successfully imported.
  */
-app.post('/import', upload.single('file'), async (req: Request, res: Response) => {
+app.post('/import', authenticateJWT as any, requireAdmin as any, upload.single('file'), async (req: Request, res: Response) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
         
@@ -89,3 +117,6 @@ app.listen(PORT, async () => {
     console.log(`Server running on http://localhost:${PORT}`);
     console.log(`Docs available at http://localhost:${PORT}/api-docs`);
 });
+
+// For AWS Lambda Deployments
+export const handler = serverless(app);
