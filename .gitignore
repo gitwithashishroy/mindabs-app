@@ -1,8 +1,11 @@
-node_modules/
-.env
+# IDEs and OS
+.vscode/
+.idea/
 .DS_Store
-backend/database.sqlite
-backend/dist/
-backend/uploads/
-frontend/.next/
-frontend/out/
+*.log
+
+# Globally ignore all .env files just in case
+.env
+.env.*
+.env.local
+.env.*.local
